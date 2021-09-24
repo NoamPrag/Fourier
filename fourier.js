@@ -5,14 +5,12 @@ const epicycles = (inputWaves, t) => {
   for (const wave of inputWaves) {
     prev = sum;
 
-    const scaledAmp = wave.amp * amplitudeScalingFactor;
-
     sum = sum.add(
-      Complex.polar(scaledAmp, -(t * TWO_PI + wave.phase) * wave.freq)
+      Complex.polar(wave.amp, t * Math.PI * 2 * wave.freq + wave.phase)
     );
 
     line(prev.re, prev.img, sum.re, sum.img);
-    circle(prev.re, prev.img, 2 * scaledAmp);
+    circle(prev.re, prev.img, 2 * wave.amp);
   }
 
   return sum;
@@ -23,7 +21,11 @@ const dft = (values) => {
 
   return values.map((_, k) =>
     range(values.length).reduce((sum, n) => {
-      return sum.add(Complex.unit(w * n * k).mult(values[n]));
+      return sum.add(
+        Complex.unit(w * n * k)
+          .mult(values[n])
+          .scale(1 / values.length)
+      );
     }, new Complex(0, 0))
   );
 };

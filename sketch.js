@@ -5,77 +5,80 @@ function setup() {
   stroke(255);
 }
 
-// const samples = [new Complex(10, 20), new Complex(20, 40), new Complex(30, 60)];
-const samples = range(10).map((index) =>
-  Complex.unit((index * 2 * Math.PI) / 9).scale(10)
-);
+const parseDrawing = (coordinates, skip = 1) => {
+  let result = [];
 
-const numberOfCircles = 10;
+  for (let i = 0; i < coordinates.length; i += skip) {
+    result.push(new Complex(coordinates[i].x, coordinates[i].y));
+  }
 
-const createSeries = (getWave) => range(numberOfCircles).map(getWave);
+  return result;
+};
 
-const squareWaves = createSeries((n) => ({
-  freq: 2 * n + 1,
-  amp: 1 / (2 * n + 1),
-  phase: 0.5 * Math.PI,
-}));
+const getWaves = (points, amplitudeScalingFactor = 1) => {
+  const transform = dft(points);
+  let waves = dftToWaves(transform);
+  waves[0].amp = 0; // moving the "average" of the drawing to zero
 
-const sawtoothWaves = createSeries((n) => ({
-  freq: n + 1,
-  amp: 1 / (n + 1),
-  phase: 0,
-}));
+  const dt = 1 / waves.length;
 
-const triangleWaves = createSeries((n) => {
-  return {
-    freq: 2 * n + 1,
-    amp: (n % 2 === 0 ? -1 : 1) / (2 * n + 1) ** 2,
-    phase: 0,
-  };
-});
+  waves = waves.map((wave) => ({
+    ...wave,
+    amp: wave.amp * amplitudeScalingFactor,
+  }));
 
-const customWaves = createSeries((n) => ({
-  freq: n + 1,
-  amp: 1 / (n + 2),
-  phase: n % 50 === 0 ? Math.PI : 0,
-}));
+  return { waves, dt };
+};
 
-// let drawingSample = [];
-// const skip = 15;
-
-// for (let i = 0; i < drawing.length; i += skip) {
-//   drawingSample[i / skip] = drawing[i];
-// }
-
-const transformed = dft(samples);
-const waves = dftToWaves(transformed);
-const amplitudeScalingFactor = 1;
-
-let time = 0;
-let output = [];
-
-function draw() {
-  background(0);
-  translate(0.5 * width, 0.5 * height);
-
+const drawFourier = (waves, path, time) => {
+  stroke(255);
+  strokeWeight(1);
   const position = epicycles(waves, time);
+  stroke(0, 0, 200);
+  strokeWeight(10);
 
-  // output.unshift(position.img);
-  output.unshift(position);
-
-  // translate(600, 0);
-  // line(position.re - 600, position.img, 0, position.img);
+  path.unshift(position);
 
   beginShape();
   noFill();
-  // output.forEach((value, index) => vertex(index, value));
-  output.forEach((value) => vertex(value.re, value.img));
+  path.forEach((value) => vertex(value.re, value.img));
   endShape();
+};
 
-  time += 0.005;
+const williBodyPoints = parseDrawing(williBodyDrawing);
+const { waves: williBodyWaves, dt: williBodyDt } = getWaves(
+  williBodyPoints,
+  0.04
+);
 
-  if (time >= 1) {
-    output = [];
-    time = 0;
+let williBodyTime = 0;
+let williBodyPath = [];
+
+const williHeadPoints = parseDrawing(williHeadDrawing);
+const { waves: williHeadWaves, dt: williHeadDt } = getWaves(
+  williHeadPoints,
+  0.04
+);
+let williHeadTime = 0;
+let williHeadPath = [];
+
+function draw() {
+  background(0);
+  translate(0.5 * width, 0.3 * height);
+
+  drawFourier(williHeadWaves, williHeadPath, williHeadTime);
+
+  williHeadTime += williHeadDt;
+
+  translate(0, 0.43 * height);
+
+  drawFourier(williBodyWaves, williBodyPath, williBodyTime);
+  williBodyTime += williBodyDt;
+
+  if (williHeadTime >= 1) {
+    williHeadPath = [];
+    williHeadTime = 0;
+    williBodyPath = [];
+    williBodyTime = 0;
   }
 }
