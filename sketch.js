@@ -34,7 +34,7 @@ const drawFourier = (waves, path, time) => {
   stroke(255);
   strokeWeight(1);
   const position = epicycles(waves, time);
-  stroke(0, 0, 200);
+  stroke(200, 0, 0);
   strokeWeight(10);
 
   path.unshift(position);
@@ -45,40 +45,20 @@ const drawFourier = (waves, path, time) => {
   endShape();
 };
 
-const williBodyPoints = parseDrawing(williBodyDrawing);
-const { waves: williBodyWaves, dt: williBodyDt } = getWaves(
-  williBodyPoints,
-  0.04
-);
-
-let williBodyTime = 0;
-let williBodyPath = [];
-
-const williHeadPoints = parseDrawing(williHeadDrawing);
-const { waves: williHeadWaves, dt: williHeadDt } = getWaves(
-  williHeadPoints,
-  0.04
-);
-let williHeadTime = 0;
-let williHeadPath = [];
+const heartPoints = parseDrawing(heartDrawing);
+let { waves: heartWaves, dt: heartDt } = getWaves(heartPoints, 10);
+let heartTime = 0;
+let heartPath = [];
 
 function draw() {
   background(0);
   translate(0.5 * width, 0.3 * height);
 
-  drawFourier(williHeadWaves, williHeadPath, williHeadTime);
+  drawFourier(heartWaves, heartPath, heartTime);
+  heartTime += heartDt;
 
-  williHeadTime += williHeadDt;
-
-  translate(0, 0.43 * height);
-
-  drawFourier(williBodyWaves, williBodyPath, williBodyTime);
-  williBodyTime += williBodyDt;
-
-  if (williHeadTime >= 1) {
-    williHeadPath = [];
-    williHeadTime = 0;
-    williBodyPath = [];
-    williBodyTime = 0;
+  if (heartTime >= 1) {
+    heartPath = [];
+    heartTime = 0;
   }
 }
