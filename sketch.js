@@ -31,10 +31,10 @@ const getWaves = (points, amplitudeScalingFactor = 1) => {
 };
 
 const drawFourier = (waves, path, time) => {
-  stroke(255);
+  stroke(150);
   strokeWeight(1);
   const position = epicycles(waves, time);
-  stroke(200, 0, 0);
+  stroke(255, 255, 0);
   strokeWeight(10);
 
   path.unshift(position);
@@ -45,20 +45,20 @@ const drawFourier = (waves, path, time) => {
   endShape();
 };
 
-const heartPoints = parseDrawing(heartDrawing);
-let { waves: heartWaves, dt: heartDt } = getWaves(heartPoints, 10);
-let heartTime = 0;
-let heartPath = [];
+const points = parseDrawing(rubberDuckDrawing);
+let { waves, dt } = getWaves(points, 0.5);
+let time = 0;
+let path = [];
 
 function draw() {
   background(0);
-  translate(0.5 * width, 0.3 * height);
+  translate(0.5 * width, 0.5 * height);
 
-  drawFourier(heartWaves, heartPath, heartTime);
-  heartTime += heartDt;
+  drawFourier(waves, path, time);
+  time += dt;
 
-  if (heartTime >= 1) {
-    heartPath = [];
-    heartTime = 0;
+  if (time >= 1) {
+    path = [];
+    time = 0;
   }
 }
